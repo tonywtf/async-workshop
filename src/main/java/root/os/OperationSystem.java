@@ -4,6 +4,7 @@ import root.http.Request;
 import root.http.Response;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class OperationSystem {
     private final List<ResponseHolder> responses = new ArrayList<>();
@@ -12,10 +13,10 @@ public class OperationSystem {
     private long nextRequestTime = System.currentTimeMillis();
 
     public ResponseHolder epoll() throws InterruptedException {
-        while(true) {
+        while (true) {
             synchronized (this) {
                 long now = System.currentTimeMillis();
-                for (ResponseHolder holder: responses) {
+                for (ResponseHolder holder : responses) {
                     if (holder.timeReady <= now) {
                         responses.remove(holder);
                         return holder;
@@ -43,7 +44,7 @@ public class OperationSystem {
     }
 
     public Request listen() throws InterruptedException {
-        while(true) {
+        while (true) {
             long now = System.currentTimeMillis();
             if (nextRequestTime <= now) {
                 nextRequestTime = now + random.nextInt(10);
@@ -64,5 +65,15 @@ public class OperationSystem {
             default:
                 return new Response(404, "url not found");
         }
+    }
+
+    private AtomicInteger count = new AtomicInteger();
+    private long start = System.currentTimeMillis();
+
+    public void sendResponse(Request request, Response response) {
+        double real = count.incrementAndGet();
+        double rps = 1000 * real / (System.currentTimeMillis() - start);
+        System.out.println("RPS: " + rps);
+        System.out.println("USER " + request.getUserId() + " ASKED FOR " + request.url + ":. Response is: " + response.getCode() + " -- " + response.getBody());
     }
 }

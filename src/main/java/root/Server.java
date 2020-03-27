@@ -2,18 +2,21 @@ package root;
 
 import root.http.Request;
 import root.http.Response;
+import root.http.WSClient;
 
 import static root.Main.OS;
 
 public class Server extends Thread {
     private boolean isRunning = true;
 
+    private WSClient steamClient = new WSClient();
+
     @Override
     public void run() {
         while (isRunning) {
             try {
                 Request nextRequest = OS.listen();
-                new Thread(() -> processNextRequest(nextRequest)).start();
+                processNextRequest(nextRequest);
             } catch (Throwable err) {
                 err.printStackTrace();
             }
@@ -21,21 +24,18 @@ public class Server extends Thread {
     }
 
     private void processNextRequest(Request nextRequest) {
-        try {
-            switch (nextRequest.url) {
-                case "/":
-                    Request steamRequest = new Request("games", nextRequest.getUserId());
-                    Response steamResponse = OS.sendRequestSync(steamRequest);
+        switch (nextRequest.url) {
+            case "/":
+                Request steamRequest = new Request("games", nextRequest.getUserId());
+                steamClient.sendRequest(steamRequest, steamResponse -> {
                     Response serverResponse = new Response(200, steamResponse.getBody());
                     OS.sendResponse(nextRequest, serverResponse);
-                    break;
-                default: {
-                    Response response = new Response(404, "Not found");
-                    OS.sendResponse(nextRequest, response);
-                }
+                });
+                break;
+            default: {
+                Response response = new Response(404, "Not found");
+                OS.sendResponse(nextRequest, response);
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 

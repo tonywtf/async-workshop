@@ -13,28 +13,30 @@ public class Server extends Thread {
         while (isRunning) {
             try {
                 Request nextRequest = OS.listen();
-                processNextRequest(nextRequest);
+                new Thread(() -> processNextRequest(nextRequest)).start();
             } catch (Throwable err) {
                 err.printStackTrace();
             }
         }
     }
 
-    private void processNextRequest(Request nextRequest) throws InterruptedException {
-
-        switch (nextRequest.url) {
-            case "/":
-                Request steamRequest = new Request("games", nextRequest.getUserId());
-                Response steamResponse = OS.sendRequestSync(steamRequest);
-                Response serverResponse = new Response(200, steamResponse.getBody());
-                OS.sendResponse(nextRequest, serverResponse);
-                break;
-            default: {
-                Response response = new Response(404, "Not found");
-                OS.sendResponse(nextRequest, response);
+    private void processNextRequest(Request nextRequest) {
+        try {
+            switch (nextRequest.url) {
+                case "/":
+                    Request steamRequest = new Request("games", nextRequest.getUserId());
+                    Response steamResponse = OS.sendRequestSync(steamRequest);
+                    Response serverResponse = new Response(200, steamResponse.getBody());
+                    OS.sendResponse(nextRequest, serverResponse);
+                    break;
+                default: {
+                    Response response = new Response(404, "Not found");
+                    OS.sendResponse(nextRequest, response);
+                }
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-
     }
 
 

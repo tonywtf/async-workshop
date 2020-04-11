@@ -70,10 +70,10 @@ public class OperationSystem {
     private AtomicInteger count = new AtomicInteger();
     private long start = System.currentTimeMillis();
 
-    public void sendResponse(Request request, Response response) {
+    public void sendResponse(Response response) {
         double real = count.incrementAndGet();
         double rps = 1000 * real / (System.currentTimeMillis() - start);
         System.out.println("RPS: " + rps);
-        System.out.println("USER " + request.getUserId() + " ASKED FOR " + request.url + ":. Response is: " + response.getCode() + " -- " + response.getBody());
+        System.out.println(response.getCode() + " -- " + response.getBody());
     }
 }

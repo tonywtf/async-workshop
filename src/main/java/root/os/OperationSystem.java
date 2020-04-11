@@ -32,7 +32,7 @@ public class OperationSystem {
             long now = System.currentTimeMillis();
             Response response = generateResponse(request);
             ResponseHolder holder = new ResponseHolder(currentId, response);
-            holder.timeReady = now + 50 + random.nextInt(250);
+            holder.timeReady = now + 50 + random.nextInt(25);
             responses.add(holder);
             return currentId++;
         }

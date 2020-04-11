@@ -26,10 +26,13 @@ public class Server extends Thread {
     private void processNextRequest(Request nextRequest) {
         switch (nextRequest.url) {
             case "/":
-                Request steamRequest = new Request("games", nextRequest.getUserId());
-                steamClient.sendRequest(steamRequest, steamResponse -> {
-                    Response serverResponse = new Response(200, steamResponse.getBody());
-                    OS.sendResponse(nextRequest, serverResponse);
+                Request gamesRequest = new Request("games", nextRequest.getUserId());
+                Request achievementRequest = new Request("achievements", nextRequest.getUserId());
+                steamClient.sendRequest(gamesRequest, gamesResponse -> {
+                    steamClient.sendRequest(achievementRequest, achievementResponse -> {
+                        Response serverResponse = new Response(200, gamesResponse.getBody() + achievementResponse.getBody());
+                        OS.sendResponse(nextRequest, serverResponse);
+                    });
                 });
                 break;
             default: {
